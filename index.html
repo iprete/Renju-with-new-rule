@@ -87,7 +87,7 @@ boardEl.addEventListener('click',e=>{if(idx!==history.length||analyzing)return;c
 ['first','prev','next','last'].forEach(id=>document.getElementById(id).addEventListener('click',()=>{if(analyzing)return; if(id==='first')idx=0;else if(id==='prev'&&idx)idx--;else if(id==='next'&&idx<history.length)idx++;else if(id==='last')idx=history.length;rebuild(idx);suggestions=[];render();}));
 document.getElementById('new').addEventListener('click',()=>{if(analyzing)return; if(confirm('새 게임?'))reset();});
 /***** Analyze buttons *****/
-document.getElementById('startAnalyze').addEventListener('click',()=>{if(analyzing)return;iterativeDeepening(14);});
+document.getElementById('startAnalyze').addEventListener('click',()=>{if(analyzing)return;iterativeDeepening(100);});
 document.getElementById('stopAnalyze').addEventListener('click',()=>{if(analyzing){stopFlag=true;}});
 /***** Export / Import *****/
 document.getElementById('export').addEventListener('click',async()=>{const data=await dumpCache();const blob=new Blob([JSON.stringify(data)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='gomokuCache.json';a.click();URL.revokeObjectURL(url);
