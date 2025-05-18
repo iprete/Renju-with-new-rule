@@ -1,113 +1,99 @@
 <!DOCTYPE html><html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Renju – Open‑Three Forbidden Engine</title>
-  <style>
-    :root{--cell:32px;--stone:26px}
-    body{font-family:sans-serif;margin:0;padding:1rem;display:flex;flex-direction:column;align-items:center;background:#faf5e7}
-    #board{width:calc(var(--cell)*15);height:calc(var(--cell)*15);background:
-       repeating-linear-gradient(0deg,#000 0 1px,transparent 1px var(--cell)),
-       repeating-linear-gradient(90deg,#000 0 1px,transparent 1px var(--cell)),
-       #e3b778;border:2px solid #000;display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);margin-top:.5rem}
-    .cell{width:100%;height:100%;background:transparent;position:relative;display:flex;align-items:center;justify-content:center}
-    .cell:hover{background:rgba(255,255,255,.3);cursor:pointer}
-    .stone{border-radius:50%;width:var(--stone);height:var(--stone);pointer-events:none}
-    .black{background:#000}.white{background:#fff;border:1px solid #000}
-    .hint{position:absolute;transform:translate(-50%,-120%);font-size:.7rem;font-weight:bold;pointer-events:none;white-space:nowrap}
-    .hint0{color:#ff5722}.hint1{color:#1565c0}.hint2{color:#555}
-    .coordX{position:absolute;bottom:0;left:2px;font-size:.55rem;color:#333}
-    .coordY{position:absolute;top:1px;left:1px;font-size:.55rem;color:#333}
-    #info{margin-top:.5rem;font-weight:bold;font-size:1.1rem}
-    #nav,#controls{display:flex;gap:.4rem;margin-top:.6rem;flex-wrap:wrap;justify-content:center}
-    button{padding:.3rem .6rem;border:none;border-radius:4px;background:#444;color:#fff;cursor:pointer}
-    button:disabled{opacity:.4}
-    #analysisProgress{margin-top:.6rem;font-weight:bold;color:#1565c0;white-space:pre-line;text-align:center}
-    #tableWrap{margin-top:.6rem;width:100%;max-width:480px;font-size:.85rem}
-    table{width:100%;border-collapse:collapse}
-    th,td{border:1px solid #777;padding:2px 4px;text-align:center}
-    th{background:#eee}
-    .neg{color:#c62828;font-weight:bold}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Renju – 금수(33·44·6목↑ 포함)</title>
+<style>
+:root{--cell:32px;--stone:26px}
+body{font-family:sans-serif;margin:0;padding:1rem;display:flex;flex-direction:column;align-items:center;background:#faf5e7}
+#board{width:calc(var(--cell)*15);height:calc(var(--cell)*15);
+  background:
+   repeating-linear-gradient(0deg ,#000 0 1px,transparent 1px var(--cell)),
+   repeating-linear-gradient(90deg,#000 0 1px,transparent 1px var(--cell)),
+   #e3b778;border:2px solid #000;
+  display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);margin-top:.5rem}
+.cell{width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;pointer-events:auto}
+.stone{border-radius:50%;width:var(--stone);height:var(--stone);pointer-events:none}
+.black{background:#000}.white{background:#fff;border:1px solid #000}
+.hint{position:absolute;transform:translate(-50%,-55%);font-size:.7rem;font-weight:bold;pointer-events:none}
+.hint0{color:#ff5722}.hint1{color:#1565c0}.hint2{color:#555}
+.ban{position:absolute;color:#c62828;font-size:1rem;font-weight:bold;pointer-events:none}
+.coordX{position:absolute;bottom:1px;left:3px;font-size:.55rem;color:#333}
+.coordY{position:absolute;top:1px;left:3px;font-size:.55rem;color:#333}
+#info{margin-top:.5rem;font-weight:bold;font-size:1.1rem}
+#nav,#controls{display:flex;gap:.4rem;margin-top:.6rem;flex-wrap:wrap;justify-content:center}
+button{padding:.3rem .6rem;border:none;border-radius:4px;background:#444;color:#fff;cursor:pointer}
+button:disabled{opacity:.4}
+#analysisProgress{margin-top:.6rem;font-weight:bold;color:#1565c0;white-space:pre-line;text-align:center}
+#tableWrap{margin-top:.6rem;width:100%;max-width:560px;font-size:.85rem}
+#tableWrap table{width:100%;border-collapse:collapse;margin-bottom:.4rem}
+#tableWrap th,#tableWrap td{border:1px solid #777;padding:2px 4px;text-align:center}
+#tableWrap th{background:#eee}
+.neg{color:#c62828;font-weight:bold}
+</style>
 </head>
 <body>
-<h2>Renju – 금수(열린3) 엔진</h2>
+<h2>Renju – 금수(33·44·6목↑) 엔진</h2>
 <div id="info"></div>
 <div id="board"></div>
 <div id="nav">
-  <button id="first">≪</button><button id="prev">〈</button>
-  <span id="moveCount">0 / 0</span>
-  <button id="next">〉</button><button id="last">≫</button>
-  <button id="new">새 게임</button>
+ <button id="first">≪</button><button id="prev">〈</button>
+ <span id="moveCount">0 / 0</span>
+ <button id="next">〉</button><button id="last">≫</button>
+ <button id="new">새 게임</button>
 </div>
 <div id="controls">
-  <button id="startAnalyze">분석 시작 (6→)</button>
-  <button id="stopAnalyze" disabled>중지</button>
-  <button id="export">Cache 내보내기</button>
-  <label style="background:#666">Cache 불러오기 <input type="file" id="import" hidden accept="application/json"></label>
+ <button id="startAnalyze">분석 시작</button>
+ <button id="stopAnalyze" disabled>중지</button>
 </div>
 <div id="analysisProgress"></div>
 <div id="tableWrap"></div>
 <script>
-/********** IndexedDB local cache **********/
-let idb;
-function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('gomokuCache',1);r.onupgradeneeded=e=>e.target.result.createObjectStore('pos',{keyPath:'hash'});r.onsuccess=e=>{idb=e.target.result;res();};r.onerror=rej;});}
-const store=m=>idb.transaction('pos',m).objectStore('pos');
-async function loadCache(h){if(!idb)await openDB();return new Promise(r=>store('readonly').get(h).onsuccess=e=>r(e.target.result));}
-async function saveCache(h,d){if(!idb)await openDB();store('readwrite').put({hash:h,...d});}
-async function dumpCache(){if(!idb)await openDB();return new Promise(r=>{const arr=[];store('readonly').openCursor().onsuccess=e=>{const c=e.target.result;if(c){arr.push(c.value);c.continue();}else r(arr);};});}
-async function importCache(arr){if(!idb)await openDB();const s=store('readwrite');arr.forEach(o=>s.put(o));}
-async function fetchRemoteCache(){try{const res=await fetch('cache.json',{cache:'no-store'});if(res.ok){const d=await res.json();if(Array.isArray(d)&&d.length)await importCache(d);}}catch{}}
-/********** Helpers **********/
-const SIZE=15,EMPTY=0,BLACK=1,WHITE=2;
-const dirs=[[1,0],[0,1],[1,1],[1,-1]];
-const rand=_=>Math.floor(Math.random()*0x100000000);
-const Z=Array.from({length:SIZE},()=>Array.from({length:SIZE},()=>[rand(),rand()]));
+/***** constants/helpers *****/
+const SIZE=15,EMPTY=0,BLACK=1,WHITE=2,dirs=[[1,0],[0,1],[1,1],[1,-1]];
+const rand=_=>Math.floor(Math.random()*0x100000000);const Z=Array.from({length:SIZE},()=>Array.from({length:SIZE},()=>[rand(),rand()]));
 const inside=(x,y)=>x>=0&&x<SIZE&&y>=0&&y<SIZE;
 const coord=(x,y)=>String.fromCharCode(65+x)+(y+1);
-const hashBoard=b=>{let h=0;for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const v=b[y][x];if(v===BLACK)h^=Z[y][x][0];else if(v===WHITE)h^=Z[y][x][1];}return h.toString(16);}  
-/********** State **********/
-let board,history=[],cur,idx,suggestions=[];
-let analyzing=false,stopFlag=false;
+const hash=b=>{let h=0;for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const v=b[y][x];if(v===BLACK)h^=Z[y][x][0];else if(v===WHITE)h^=Z[y][x][1];}return h.toString(16);}  
+/***** state *****/
+let board,history,cur,idx,suggestions,analyzing=false,stopFlag=false;
 const boardEl=document.getElementById('board');
-/********** Rendering **********/
-function render(){boardEl.innerHTML='';const hintMap=new Map();suggestions.forEach((s,i)=>hintMap.set(s.x+","+s.y,{score:s.score,rank:i}));for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=document.createElement('div');c.className='cell';c.dataset.x=x;c.dataset.y=y;if(board[y][x]){const st=document.createElement('div');st.className='stone '+(board[y][x]===BLACK?'black':'white');c.appendChild(st);}if(y===SIZE-1){const lx=document.createElement('span');lx.className='coordX';lx.textContent=String.fromCharCode(65+x);c.appendChild(lx);}if(x===0){const ly=document.createElement('span');ly.className='coordY';ly.textContent=y+1;c.appendChild(ly);}const h=hintMap.get(x+","+y);if(h){const sp=document.createElement('span');sp.className='hint hint'+h.rank;sp.textContent=(h.rank+1)+':'+h.score;c.appendChild(sp);}boardEl.appendChild(c);}document.getElementById('info').textContent=idx===history.length?(cur===BLACK?'흑':'백')+' 차례':'리플레이 – '+idx+'수';document.getElementById('moveCount').textContent=idx+' / '+history.length;['first','prev'].forEach(id=>document.getElementById(id).disabled=!idx);['next','last'].forEach(id=>document.getElementById(id).disabled=idx===history.length);}
-function resetBoard(){board=Array.from({length:SIZE},()=>Array(SIZE).fill(0));history=[];cur=BLACK;idx=0;suggestions=[];document.getElementById('analysisProgress').textContent='';document.getElementById('tableWrap').innerHTML='';render();}
+/***** forbidden (33·44·overline·open3) for BLACK *****/
+function countLine(b,x,y,dx,dy,c){let cnt=1;let nx=x+dx,ny=y+dy;while(inside(nx,ny)&&b[ny][nx]===c){cnt++;nx+=dx;ny+=dy;}nx=x-dx;ny=y-dy;while(inside(nx,ny)&&b[ny][nx]===c){cnt++;nx-=dx;ny-=dy;}return cnt;}
+function pattern9(b,x,y,dx,dy){let arr='';for(let k=-4;k<=4;k++){const nx=x+dx*k,ny=y+dy*k;if(!inside(nx,ny))arr+='X';else arr+=b[ny][nx]===0?'_':b[ny][nx]===BLACK?'B':'W';}return arr;}
+function isOpenThree(b,x,y){return dirs.some(([dx,dy])=>/_BBB_/.test(pattern9(b,x,y,dx,dy)));}
+function countOpenFours(b,x,y){let c=0;dirs.forEach(([dx,dy])=>{const s=pattern9(b,x,y,dx,dy);if(/BB_BB/.test(s)||/_BBBB_/.test(s))c++;});return c;}
+function countOpenThrees(b,x,y){let c=0;dirs.forEach(([dx,dy])=>{const s=pattern9(b,x,y,dx,dy).replace(/W|B/g,m=>m==='B'?'B':'O');if(/_BBB_/.test(s))c++;});return c;}
+function forbidden(x,y){if(board[y][x]!==EMPTY||cur!==BLACK)return false;board[y][x]=BLACK;
+ const over=dirs.some(([dx,dy])=>countLine(board,x,y,dx,dy,BLACK)>=6);
+ const d3=countOpenThrees(board,x,y)>=2;
+ const d4=countOpenFours(board,x,y)>=2;
+ const op3=isOpenThree(board,x,y);
+ board[y][x]=EMPTY;return over||d3||d4||op3;}
+/***** rendering *****/
+function render(){boardEl.innerHTML='';const hintMap=new Map();suggestions?.forEach((s,i)=>hintMap.set(`${s.x},${s.y}`,{s:s.score,r:i}));for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const cell=document.createElement('div');cell.className='cell';cell.dataset.x=x;cell.dataset.y=y;const v=board[y][x];if(v){const st=document.createElement('div');st.className='stone '+(v===BLACK?'black':'white');cell.appendChild(st);}else if(cur===BLACK&&forbidden(x,y)){const ban=document.createElement('span');ban.className='ban';ban.textContent='×';cell.appendChild(ban);}const h=hintMap.get(`${x},${y}`);if(h){const sp=document.createElement('span');sp.className='hint hint'+h.r;sp.textContent=(h.r+1)+':'+h.s;cell.appendChild(sp);}if(y===SIZE-1){const lx=document.createElement('span');lx.className='coordX';lx.textContent=String.fromCharCode(65+x);cell.appendChild(lx);}if(x===0){const ly=document.createElement('span');ly.className='coordY';ly.textContent=y+1;cell.appendChild(ly);}boardEl.appendChild(cell);}document.getElementById('info').textContent=idx===history.length?(cur===BLACK?'흑':'백')+' 차례':'리플 '+idx+'수';document.getElementById('moveCount').textContent=idx+' / '+history.length;}
+function reset(){board=Array.from({length:SIZE},()=>Array(SIZE).fill(0));history=[];cur=BLACK;idx=0;suggestions=[];render();document.getElementById('analysisProgress').textContent='';document.getElementById('tableWrap').innerHTML='';}
 function rebuild(n){board=Array.from({length:SIZE},()=>Array(SIZE).fill(0));for(let i=0;i<n;i++){const m=history[i];board[m.y][m.x]=m.c;}cur=n%2?WHITE:BLACK;}
-/********** Rule helpers **********/
-function win(b,x,y){const c=b[y][x];for(const[dX,dY]of dirs){let cnt=1;for(const s of[-1,1]){let nx=x+dX*s,ny=y+dY*s;while(inside(nx,ny)&&b[ny][nx]===c){cnt++;nx+=dX*s;ny+=dY*s;}}if(cnt>=5)return true;}return false;}
-function lineStr(b,x,y,dX,dY){let s='';for(let k=-4;k<=4;k++){const nx=x+dX*k,ny=y+dY*k;s+=!inside(nx,ny)?'X':b[ny][nx]===0?'_':b[ny][nx]===BLACK?'B':'W';}return s;}
-function open3(b,x,y,c){b[y][x]=c;const tgt=c===BLACK?'B':'W';let ok=false;for(const[dX,dY]of dirs){if(/_BBB_/.test(lineStr(b,x,y,dX,dY).replace(/B|W/g,m=>m===tgt?tgt:'O'))){ok=true;break;}}b[y][x]=0;return ok;}
-const near=(b,x,y)=>{for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const nx=x+dx,ny=y+dy;if(inside(nx,ny)&&b[ny][nx])return true;}return false;};
-/********** Evaluation & Search **********/
-const WIN=2e5;const TT=new Map();const hist=[];
-function segScore(a,me){let v=0;for(let i=0;i<a.length;){if(a[i]!==me){i++;continue;}let j=i;while(j<a.length&&a[j]===me)j++;const len=j-i;const L=i-1>=0&&a[i-1]===0,R=j<a.length&&a[j]===0;v+=len>=5?1e5:len===4?(L&&R?1e4:5e3):len===3?(L&&R?1e3:400):len===2?(L&&R?100:40):len===1&&L&&R?10:0;i=j;}return v;}
-function evalBoard(b,me){let s=0;for(let y=0;y<SIZE;y++)s+=segScore(b[y],me)-segScore(b[y],me===BLACK?WHITE:BLACK);for(let x=0;x<SIZE;x++){const col=[];for(let y=0;y<SIZE;y++)col.push(b[y][x]);s+=segScore(col,me)-segScore(col,me===BLACK?WHITE:BLACK);}return s;}
-function genMoves(b,p){const wins=[],others=[];for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){if(b[y][x]||open3(b,x,y,p)||!near(b,x,y))continue;b[y][x]=p;if(win(b,x,y))wins.unshift([x,y]);else others.push([x,y]);b[y][x]=0;}return wins.concat(others);}
-function alphaBeta(b,h,p,d,maxD,alpha,beta){if(d&&win(b,hist[d-1].x,hist[d-1].y))return WIN-d;const tt=TT.get(h);if(tt&&tt.d>=maxD-d)return tt.v;if(d===maxD)return evalBoard(b,p);
-  let best=-Infinity;for(const[mx,my] of genMoves(b,p)){
-    if(stopFlag)return 0;
-    b[my][mx]=p;hist[d]={x:mx,y:my};const h2=h^(p===BLACK?Z[my][mx][0]:Z[my][mx][1]);const sc=-alphaBeta(b,h2,p===BLACK?WHITE:BLACK,d+1,maxD,-beta,-alpha);b[my][mx]=0;if(sc>best)best=sc;if(sc>alpha)alpha=sc;if(alpha>=beta)break;}
-  TT.set(h,{d:maxD-d,v:best});return best;}
-async function analyzeDepth(depth){const key=hashBoard(board);const cached=await loadCache(key);if(cached&&cached.depth>=depth){suggestions=cached.top3;return cached.top3;}
-  const mv=genMoves(board,cur);const res=[];hist.length=0;
-  for(let i=0;i<mv.length;i++){if(stopFlag)break;const [x,y]=mv[i];board[y][x]=cur;hist[0]={x,y};const score=-alphaBeta(board,key^(cur===BLACK?Z[y][x][0]:Z[y][x][1]),cur===BLACK?WHITE:BLACK,1,depth,-Infinity,Infinity);board[y][x]=0;res.push({x,y,score});document.getElementById('analysisProgress').textContent=`[깊이 ${depth}] ${i+1}/${mv.length} : ${coord(x,y)} → ${score}`;await new Promise(r=>setTimeout(r,0));}
-  res.sort((a,b)=>b.score-a.score);suggestions=res.slice(0,3);await saveCache(key,{depth,top3:suggestions});return suggestions;}
-function appendTableRow(depth,arr){let html='<table><thead><tr><th>깊이</th><th>Rank</th><th>수</th><th>평가</th></tr></thead><tbody>';
-  arr.forEach((s,i)=>html+=`<tr><td>${depth}</td><td>${i+1}</td><td>${coord(s.x,s.y)}</td><td class="${s.score<0?'neg':''}">${s.score}</td></tr>`);
-  html+='</tbody></table>';
-  document.getElementById('tableWrap').innerHTML+=html;
-}
-async function iterativeDeepening(max=14){if(analyzing)return;analyzing=true;stopFlag=false;document.getElementById('stopAnalyze').disabled=false;document.getElementById('startAnalyze').disabled=true;
-  for(let d=6;d<=max&&!stopFlag;d++){await analyzeDepth(d);render();appendTableRow(d,suggestions);}
-  document.getElementById('analysisProgress').textContent=stopFlag?'중단됨':'완료';document.getElementById('stopAnalyze').disabled=true;document.getElementById('startAnalyze').disabled=false;analyzing=false;stopFlag=false;}
-/********** UI events **********/
-boardEl.addEventListener('click',e=>{if(idx!==history.length||analyzing)return;const cell=e.target.closest('.cell');if(!cell)return;const x=+cell.dataset.x,y=+cell.dataset.y;if(board[y][x]||open3(board,x,y,cur)){alert('금수');return;}history.push({x,y,c:cur});board[y][x]=cur;idx++;suggestions=[];if(win(board,x,y))alert((cur===BLACK?'흑':'백')+' 승리!');else cur=cur===BLACK?WHITE:BLACK;render();});
-['first','prev','next','last'].forEach(id=>document.getElementById(id).addEventListener('click',()=>{if(analyzing)return;switch(id){case'first':idx=0;break;case'prev':if(idx)idx--;break;case'next':if(idx<history.length)idx++;break;case'last':idx=history.length;}
-  rebuild(idx);suggestions=[];render();}));
-document.getElementById('new').addEventListener('click',()=>{if(analyzing)return;resetBoard();});
-/***** Analyze buttons *****/
-document.getElementById('startAnalyze').addEventListener('click',()=>{iterativeDeepening(20);});// up to 20 ply for safetydocument.getElementById('stopAnalyze').addEventListener('click',()=>{stopFlag=true;}); /***** Export / Import / document.getElementById('export').addEventListener('click',async()=>{const data=await dumpCache();const blob=new Blob([JSON.stringify(data)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='gomokuCache.json';a.click();URL.revokeObjectURL(url); const body=encodeURIComponent('json\n'+JSON.stringify(data)+'\n');const link=https://github.com/iprete/Renju-with-new-rule/issues/new?title=Upload%20cache&body=${body};prompt('Issue 링크 복사 후 열기',link); });document.getElementById('import').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{importCache(JSON.parse(ev.target.result)).then(()=>alert('병합 완료'));}catch{alert('JSON 오류');}};r.readAsText(f);}); / Init *****/ (async()=>{await openDB();await fetchRemoteCache();resetBoard();})(); </script>
-
+/***** simple eval & move gen using forbidden() *****/
+function moves(){const r=[];for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){if(board[y][x])continue;if(cur===BLACK&&forbidden(x,y))continue;if(!near(board,x,y))continue;r.push([x,y]);}return r;}
+function seg(a,m){let v=0;for(let i=0;i<a.length;){if(a[i]!==m){i++;continue;}let j=i;while(j<a.length&&a[j]===m)j++;v+=j-i>=5?1e5:0;i=j;}return v;}
+function evalBd(){let s=0;for(let y=0;y<SIZE;y++)s+=seg(board[y],BLACK)-seg(board[y],WHITE);return (cur===BLACK?1:-1)*s;}
+function dfs(d,limit){if(d===limit||stopFlag)return evalBd();let best=-1e9;for(const[mx,my] of moves()){board[my][mx]=cur;cur=cur===BLACK?WHITE:BLACK;best=Math.max(best,-dfs(d+1,limit));cur=cur===BLACK?WHITE:BLACK;board[my][mx]=EMPTY;}
+ return best;}
+async function analyze(depth){let best=-1e9;let bestMoves=[];for(const[mx,my] of moves()){board[my][mx]=cur;cur=cur===BLACK?WHITE:BLACK;const v=-dfs(1,depth);cur=cur===BLACK?WHITE:BLACK;board[my][mx]=EMPTY;bestMoves.push({x:mx,y:my,score:v});}
+ bestMoves.sort((a,b)=>b.score-a.score);suggestions=bestMoves.slice(0,3);}
+function appendRow(d){const tbl=document.createElement('table');let h='<thead><tr><th>깊이</th><th>Rank</th><th>수</th><th>평가</th></tr></thead><tbody>';
+ suggestions.forEach((s,i)=>h+=`<tr><td>${d}</td><td>${i+1}</td><td>${coord(s.x,s.y)}</td><td class="${s.score<0?'neg':''}">${s.score}</td></tr>`);tbl.innerHTML=h+'</tbody>';document.getElementById('tableWrap').appendChild(tbl);}
+/***** iterative deepening 1..100 *****/
+async function startSearch(){if(analyzing)return;analyzing=true;stopFlag=false;document.getElementById('stopAnalyze').disabled=false;for(let d=1;d<=100&&!stopFlag;d++){document.getElementById('analysisProgress').textContent='깊이 '+d+' 계산';await analyze(d);render();appendRow(d);}document.getElementById('analysisProgress').textContent=stopFlag?'중단':'완료';document.getElementById('stopAnalyze').disabled=false;analyzing=false;}
+/***** events *****/
+boardEl.addEventListener('click',e=>{if(analyzing||idx!==history.length)return;const c=e.target.closest('.cell');if(!c)return;const x=+c.dataset.x,y=+c.dataset.y;if(board[y][x])return;if(cur===BLACK&&forbidden(x,y))return alert('금수');history.push({x,y,c:cur});board[y][x]=cur;idx++;if(win(board,x,y)){render();alert((cur===BLACK?'흑':'백')+' 승!');reset();return;}cur=cur===BLACK?WHITE:BLACK;render();});
+['first','prev','next','last'].forEach(id=>document.getElementById(id).onclick=()=>{if(analyzing)return;switch(id){case'first':idx=0;break;case'prev':idx=Math.max(idx-1,0);break;case'next':idx=Math.min(idx+1,history.length);break;case'last':idx=history.length;}rebuild(idx);render();});
+document.getElementById('new').onclick=()=>{if(analyzing)return;reset();};
+document.getElementById('startAnalyze').onclick=startSearch;
+document.getElementById('stopAnalyze').onclick=()=>stopFlag=true;
+/***** init *****/
+(async()=>{await openDB();reset();})();
+</script>
 </body>
 </html>
