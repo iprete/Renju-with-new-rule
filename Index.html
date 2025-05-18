@@ -95,7 +95,7 @@ document.getElementById('new').addEventListener('click',()=>{if(confirm('새 게
 document.getElementById('analyze').addEventListener('click',async()=>{if(viewIdx!==moveHistory.length)return alert('최신 수에서만 분석');const d=+document.getElementById('depth').value||6;const top=await analyze(d);render();let txt='TOP‑3 (깊이 '+d+')\n';top.forEach((s,i)=>txt+=(i+1)+'. '+coordName(s.x,s.y)+' '+s.score+'\n');document.getElementById('analysisResult').textContent=txt;});
 /************ Export / Import ************/
 document.getElementById('export').addEventListener('click',async()=>{const data=await dumpCache();const str=JSON.stringify(data);const blob=new Blob([str],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='gomokuCache.json';a.click();URL.revokeObjectURL(url);
-  const issueBody=encodeURIComponent("```json\n"+str+"\n```\n\n(자동 업로드 캐시)");const link=`https://github.com/USERNAME/REPO/issues/new?title=Upload%20cache&body=${issueBody}`;setTimeout(()=>alert('GitHub Issue 업로드 링크가 복사됩니다.\n\n' + link),100);
+  const issueBody=encodeURIComponent("```json\n"+str+"\n```\n\n(자동 업로드 캐시)");const link=`https://github.com/iprete/Renju-with-new-rule/issues/new?title=Upload%20cache&body=${issueBody}`;setTimeout(()=>alert('GitHub Issue 업로드 링크가 복사됩니다.\n\n' + link),100);
 });document.getElementById('import').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const arr=JSON.parse(ev.target.result);importCache(arr).then(()=>alert('캐시 병합 완료'));}catch{alert('JSON 파싱 실패');}};r.readAsText(f);}); /************ INIT ************/ render(); </script>
 
 </body>
