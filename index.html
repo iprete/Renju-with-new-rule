@@ -2,7 +2,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Renju – 금수(33·44·6목↑ 포함)</title>
+<title>Renju – 3금수</title>
 <style>
 :root{--cell:32px;--stone:26px}
 body{font-family:sans-serif;margin:0;padding:1rem;display:flex;flex-direction:column;align-items:center;background:#faf5e7}
@@ -33,7 +33,7 @@ button:disabled{opacity:.4}
 </style>
 </head>
 <body>
-<h2>Renju – 금수(33·44·6목↑) 엔진</h2>
+<h2>Renju – 3금수 엔진</h2>
 <div id="info"></div>
 <div id="board"></div>
 <div id="nav">
@@ -93,7 +93,11 @@ document.getElementById('new').onclick=()=>{if(analyzing)return;reset();};
 document.getElementById('startAnalyze').onclick=startSearch;
 document.getElementById('stopAnalyze').onclick=()=>stopFlag=true;
 /***** init *****/
-(async()=>{await openDB();reset();})();
+(async()=>{
+  await openDB();   // IndexedDB 초기화 완료
+  reset();          // 빈 보드 렌더
+  init();           // 이벤트 바인딩 (클릭·내비·버튼)
+})();
 </script>
 </body>
 </html>
